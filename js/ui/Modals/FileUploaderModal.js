@@ -2,10 +2,10 @@
  * Класс FileUploaderModal
  * Используется как всплывающее окно для загрузки изображений
  */
-class FileUploaderModal {
+class FileUploaderModal extends BaseModal{
   constructor( element ) {
     super(element);
-    TouchList.uploaderWindow = document.querySelector('.file-uploader-modal');
+    this.uploaderWindow = document.querySelector('.file-uploader-modal');
     this.contentContainer = this.domElement.querySelector('.content');
     this.closeButton = this.domElement.querySelector('.close');
     this.sendAllButton = this.domElement.querySelector('.send-all');

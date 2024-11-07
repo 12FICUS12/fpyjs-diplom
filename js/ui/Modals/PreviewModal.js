@@ -2,7 +2,7 @@
  * Класс PreviewModal
  * Используется как обозреватель загруженный файлов в облако
  */
-class PreviewModal {
+class PreviewModal extends BaseModal {
   constructor( element ) {
     super(element);
     this.registerEvents
