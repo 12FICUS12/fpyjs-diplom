@@ -5,7 +5,8 @@
 class PreviewModal extends BaseModal {
   constructor( element ) {
     super(element);
-    this.registerEvents
+    this.modalPreviewer = document.querySelector('.uploaded-previewer-modal');
+    this.registerEvents();
 
   }
 
@@ -17,16 +18,20 @@ class PreviewModal extends BaseModal {
    * Скачивает изображение, если клик был на кнопке download
    */
   registerEvents() {
-    this.domElement.querySelector('.x').addEventListener('click', () => {
+    this.modalPreviewer.querySelector('.header i').addEventListener('click', () => {
       this.close()});
-    this.domElement.querySelector('.content').addEventListener('click', (event) => {
+
+    this.modalPreviewer.querySelector('.content').addEventListener('click', (event) => {
       if (event.target.classList.contains('delete')){
         event.target.querySelector('i').classList.add('icon', 'spinner', 'loading');
         event.target.classList.add('disabled');
-        Yandex.removeFile(event.target.path, (Response) => {
-          if (Response === null){
+        Yandex.removeFile(event.target.dataset.path, response => {
+          console.log(response);
+          if (!response){
             event.target.closest('.image-previw-container').remove()}});
-      } else if (event.target.classList.contains('download')){
+      } 
+      if (event.target.classList.contains('download')){
+        console.log(event.target)
         Yandex.downloadFileByUrl(event.target.dataset.file)
       }
     })
@@ -38,11 +43,15 @@ class PreviewModal extends BaseModal {
    * Отрисовывает изображения в блоке всплывающего окна
    */
   showImages(data) {
-    const images = data.items.reverse();
-    const imageList =[];
-    images.forEach(element => {
-      imageList.push(this.getImageInfo(element))});
-      this.domElement.querySelector('.content').innerHTML = imageList.join('');
+    const items = data.items.reverse();
+    const imageHtml =[];
+    
+    if (data.items.length > 0) {
+      for (const image of items) {
+        imageHtml.push(this.getImageInfo(image))
+      }
+    }
+    this.modalPreviewer.querySelector('.content').innerHTML = imageHtml.join('');
 
   }
 
@@ -51,16 +60,19 @@ class PreviewModal extends BaseModal {
    * в формат «30 декабря 2021 г. в 23:40» (учитывая временной пояс)
    * */
   formatDate(date) {
-    const data = new Date(date);
-    return data.toLocaleString('ru', {
-      day: 'numeric',
-      month: 'long',
+    const dataForm = new Date(date);
+    const options = {
       year: 'numeric',
+      month: 'long',
+      day: 'numeric',
       hour: 'numeric',
-      minute: 'numeric'
-    });
-
+      minute: 'numeric',
+      second: 'numeric'
+    };
+    return dateFormated.toLocaleString("ru", options);
   }
+
+
 
   /**
    * Возвращает разметку из изображения, таблицы с описанием данных изображения и кнопок контроллеров (удаления и скачивания)
@@ -86,7 +98,7 @@ class PreviewModal extends BaseModal {
                   <i class="download icon"></i>
                 </button>
               </div>
-            </div>`;
-  }
+            </div>`
+  };
   
 }

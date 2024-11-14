@@ -1,37 +1,32 @@
-/**
- * Основная функция для совершения запросов по Yandex API.
- * */
-const createRequest = (options = {}) => {
-    let urlParams = '?';
-    if (options.data){
-        for (let param in options.data){
-            urlParams += `${param}=${options.data[param]}&`
-        }
-        urlParams = urlParams.substring(0, urlParams.length - 1)
-    }
-    const head = new Headers(options.headers);
-    (async () => {
-        let response = await fetch(options.url + urlParams, {
+const createRequest = async (options = {}) => {
+    const params = new URLSearchParams(options.data);
+    const url = new URL(options.url);
+    url.search = params.toString();
+     
+    try {
+        const response = await fetch(url.href, {
             method: options.method,
-            headers: head,
-            body: options.body
+            headers: options.headers,
+            credentials: 'include'
         });
-        let result ;
-        if (response.status <204){
+
+        let result;
+        if (response.status < 204) {
             try {
                 result = await response.json();
-            } catch (error){
+            } catch (error) {
                 console.log(error);
                 result = null;
             }
-            return options.callback(result)
-        }
-        else if (response.status ==204){
-            return options.callback(null)
+            return options.callback ? options.callback(result) : null;
+        } else if (response.status === 204) {
+            return options.callback ? options.callback(null) : null;
         } else {
             console.log(response);
-            alert('Просим прощения! Техническая ошибка, повторите позже')
+            alert('Просим прощения! Техническая ошибка, повторите позже');
         }
-    })
-
+    } catch (error) {
+        console.error('Ошибка при выполнении запроса:', error);
+        alert('Произошла ошибка при выполнении запроса.');
+    }
 };

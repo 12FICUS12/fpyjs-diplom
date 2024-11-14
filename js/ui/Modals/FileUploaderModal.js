@@ -2,15 +2,14 @@
  * Класс FileUploaderModal
  * Используется как всплывающее окно для загрузки изображений
  */
-class FileUploaderModal extends BaseModal{
+class FileUploaderModal extends BaseModal {
   constructor( element ) {
     super(element);
-    this.uploaderWindow = document.querySelector('.file-uploader-modal');
-    this.contentContainer = this.domElement.querySelector('.content');
-    this.closeButton = this.domElement.querySelector('.close');
-    this.sendAllButton = this.domElement.querySelector('.send-all');
+    this.uploadWindow = document.querySelector('.file-uploader-modal');
+    this.contentUploadModel = this.uploadWindow.querySelector('.content');
+    this.btnClose = this.uploadWindow.querySelector(".close.button");
+    this.iconClose = this.uploadWindow.querySelector(".header i");
     this.registerEvents();
-
   }
 
   /**
@@ -23,76 +22,90 @@ class FileUploaderModal extends BaseModal{
    * отправляет одно изображение, если клик был по кнопке отправки
    */
   registerEvents(){
-    this.uploaderWindow.querySelector('.x').addEventListener('click', () => {
-      this.close()});
-    this.closeButton.addEventListener('click', () => {
-      this.close()});
-    this.sendAllButton.addEventListener('click', this.sendAllImages.bind(this));
-    this.contentContainer.addEventListener('click', (event) => {
 
-      if (event.target === this.contentContainer.querySelector('input')){
-        if (this.contentContainer.classList.contains('error')){
-          this.contentContainer.classList.remove('error');
-        }
+     // Клик по крестику на всплывающем окне и клик по кнопке "Закрыть" на всплывающем окне 
+    this.iconClose.addEventListener('click', () => {
+      this.close()
+    });
+
+    this.btnClose.addEventListener('click', () => {
+      this.close()
+    });
+
+    this.uploadWindow.addEventListener('click', (event) => {
+
+      // Клик по кнопке "Отправить все файлы"
+      if (event.target.classList.contains('send-all')) {
+        this.sendAllImages()
+      };
+
+      // Удалить класс error у блока с классом input
+      if (event.target.tagName === 'INPUT') {
+        event.target.parentElement.classList.remove('error')
       }
-      if (event.target.classList.contains('button') || event.target.classList.contains('upload')) {
-        this.sendImage(event.target.closest('.image-previw-container'));
+      
+      // Передавать весь блок контейнер изображения 
+      if (event.target.tagName === 'BUTTON') {
+        this.sendImage(event.target.closest('.image-preview-container'))
       }
     })
 
   }
-
   /**
    * Отображает все полученные изображения в теле всплывающего окна
    */
   showImages(images) {
-    let imageList = []
     images.reverse();
-    images.forEach(el => {imageList.push(this.getImageHTML(el))});
-    this.contentContainer.innerHTML = imageList.join('');
-
+    const imagesHTML = [];
+    for (const src of images) {
+      imagesHTML.push(this.getImageHTML(src));
+      this.contentUploadModel.innerHTML = imagesHTML;
+    }
   }
 
   /**
    * Формирует HTML разметку с изображением, полем ввода для имени файла и кнопкной загрузки
    */
   getImageHTML(item) {
-    return `<div class="image-preview-container">
-                <img src='${item}' />
-                <div class="ui action input">
-                    <input type="text" placeholder="Путь к файлу">
-                    <button class="ui button"><i class="upload icon"></i></button>
-                </div>
-            </div>`;
-
+    return `
+    <div class="image-preview-container">
+    <img src= '${item}' />
+    <div class="ui action input">
+      <input type="text" placeholder="Путь к файлу">
+      <button class="ui button"><i class="upload icon"></i></button>
+    </div>
+  </div>`
   }
 
   /**
    * Отправляет все изображения в облако
    */
   sendAllImages() {
-    
-    Array.from(this.contentContainer.querySelectorAll(".image-preview-container")).forEach(el => this.sendImage(el))
-
+    const imageContainer = this.contentUploadModel.querySelectorAll('.image-preview-container')
+    imageContainer.forEach(el => {
+      this.sendImage(el)
+    })
   }
-
-  
 
   /**
    * Валидирует изображение и отправляет его на сервер
    */
   sendImage(imageContainer) {
-    const path = imageContainer.querySelector('input').value.trim();
-    const url = imageContainer.querySelector('img').src;
-    if (path) {
-      imageContainer.querySelector('.input').classList.add('disabled');
-      Yandex.uploadFile(path, url, () => {
+    const input = imageContainer.querySelector('input')
+    const inputTrim = imageContainer.querySelector('input').value.trim();
+    const nameFile = inputTrim + '.png'
+    const imgSrc = imageContainer.querySelector('img').src
+    
+    if (inputTrim) {
+      input.classList.add('disabled')
+      Yandex.uploadFile(nameFile, imgSrc, () => {
+        if (this.contentUploadModel.children.length === 1) {
+          this.close()
+        }
         imageContainer.remove();
-        if (this.contentContainer.children.length === 0) {this.close()}
-      });
+      })
     } else {
-      imageContainer.querySelector('.input').classList.add('error');
+      input.parentElement.classList.add('error')
     }
-
   }
 }

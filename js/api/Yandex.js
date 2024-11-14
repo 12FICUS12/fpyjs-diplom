@@ -5,23 +5,18 @@
  * */
 class Yandex {
   static HOST = 'https://cloud-api.yandex.net/v1/disk';
+  static headers = {
+    "Authorization": `OAuth ${this.getToken()}`,
+    'Content-Type': 'application/json',
+  }
 
   /**
    * Метод формирования и сохранения токена для Yandex API
    */
-  static getHeader(){
-    return {
-      'Authorization': `OAuth ${this.getToken()}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    }
-  }
-
   static getToken(){
-    let token = localStorage.getItem('yandex_token');
-    if (!token){
-      const token = promt('Пожалуйста введите токен Яндекса')
-      localStorage.setItem('yandex_token', token);
+    let token = localStorage.getItem('TokenYandex');
+    if (!token) {
+      localStorage.setItem('TokenYandex', prompt('Введите токен Yandex'));
     }
     return token
   }
@@ -30,35 +25,24 @@ class Yandex {
    * Метод загрузки файла в облако
    */
   static uploadFile(path, url, callback){
-    url = url.replace(/&/g, '%26');
-    url = url.replace(/=/g, '%3D');
     createRequest({
-      url: '/resources/upload',
       method: 'POST',
-      headers: this.getHeader(),
-      data: {path, url},
-      callback: ( err, response ) => {
-        console.log( err ); // null
-        console.log( response ); // ответ
-      }
-      })
-    }
-    
+      url: 'https://cloud-api.yandex.net/v1/disk/resources/upload',
+      data: {'path': path, 'url': url},
+      headers: this.headers,
+    }, callback)
+  }
 
   /**
    * Метод удаления файла из облака
    */
   static removeFile(path, callback){
     createRequest({
-      url: `/resources`,
       method: 'DELETE',
-      headers: this.getHeader(),
-      data: {path},
-      callback: ( err, response ) => {
-        console.log( err ); // null
-        console.log( response ); // ответ
-      }
-    })
+      url: 'https://cloud-api.yandex.net/v1/disk/resources',
+      data: {'path': path},
+      headers: this.headers,
+    }, callback)
   }
 
   /**
@@ -66,24 +50,19 @@ class Yandex {
    */
   static getUploadedFiles(callback){
     createRequest({
-      url: `/resources/files`,
       method: 'GET',
-      headers: this.getHeader(),
-      callback: ( err, response ) => {
-      
-        console.log( err ); // null
-        console.log( response ); // ответ
-      }
-    })
-
+      url: 'https://cloud-api.yandex.net/v1/disk/resources/files',
+      headers: this.headers,
+      data: {media_type: 'image', limit: 1000},
+    }, callback)
   }
 
   /**
    * Метод скачивания файлов
    */
   static downloadFileByUrl(url){
-    let link = document.createElement('a');
-    link.href = url;
-    link.click();
+    const link = document.createElement('a')
+    link.href = url
+    link.click()
   }
 }
