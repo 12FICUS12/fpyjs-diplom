@@ -7,7 +7,6 @@ class ImageViewer {
     this.element = element;
     // console.log(this.element)
     this.imageBlock = this.element.querySelector('.images-list');
-    // console.log(this.imageBlock)
     this.registerEvents();
   }
 
