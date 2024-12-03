@@ -7,6 +7,7 @@ class ImageViewer {
     this.element = element;
     // console.log(this.element)
     this.imageBlock = this.element.querySelector('.images-list');
+    // console.log(this.imageBlock)
     this.registerEvents();
   }
 
@@ -51,18 +52,32 @@ class ImageViewer {
     });
 
     // Клик по кнопке "Посмотреть загруженные файлы"
-
-    const btnShowLoadFiles = this.element.querySelector('.show-uploaded-files')
-    btnShowLoadFiles.addEventListener('click', () => {
+const btnShowLoadFiles = this.element.querySelector('.show-uploaded-files');
+btnShowLoadFiles.addEventListener('click', () => {
     const modalPreviewer = App.getModal('filePreviewer');
     modalPreviewer.innerHTML = '<i class="asterisk loading icon massive"></i>';
     modalPreviewer.open();
-    
-    Yandex.getUploadedFiles(data => {
-      modalPreviewer.showImages(data)
-    })
-    })
 
+    Yandex.getUploadedFiles((error, data) => {
+      if (error) {
+          console.error('Ошибка при загрузке файлов:', error);
+          modalPreviewer.innerHTML = 'Не удалось загрузить файлы.';
+          return; // Выход из функции
+      }
+  
+      if (data && Array.isArray(data)) {
+          console.log('Полученные загруженные файлы:', data);
+          // Выводим URL-адреса изображения
+          data.forEach(file => {
+              console.log(`Изображение: ${file.path}`); // Проверьте, как получаете и отображаете их
+          });
+          modalPreviewer.showImages(data);
+      } else {
+          console.error('Нет загруженных файлов для отображения.');
+          modalPreviewer.innerHTML = 'Нет загруженных файлов для отображения.';
+      }
+  });
+});
     // Клик по кнопке "Отправить на диск"
     const btnSend = this.element.querySelector('.send')
     
